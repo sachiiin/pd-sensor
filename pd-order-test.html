@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PD Locker Config</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #EDEAE3;
+  --surface:   #F7F5F0;
+  --panel:     #FFFFFF;
+  --border:    #C8C5BC;
+  --border-md: #A8A49B;
+  --text:      #1C1B18;
+  --text-muted:#706E68;
+  --text-dim:  #9B9891;
+  --green:     #2A7A4B;
+  --green-bg:  #DFF2E8;
+  --red:       #B03030;
+  --red-bg:    #FDEAEA;
+  --amber:     #8A5A00;
+  --amber-bg:  #FFF0CC;
+  --blue:      #1A5FA8;
+  --blue-bg:   #E8F0FB;
+  --mono:      'Courier New', Courier, monospace;
+  --ui:        system-ui, -apple-system, sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg:        #1A1A1E;
+  --surface:   #232328;
+  --panel:     #2A2A30;
+  --border:    #3E3E46;
+  --border-md: #52525C;
+  --text:      #E8E6E1;
+  --text-muted:#9D9B95;
+  --text-dim:  #6E6C66;
+  --green:     #3FBF6F;
+  --green-bg:  #1A3328;
+  --red:       #E05555;
+  --red-bg:    #3A1A1A;
+  --amber:     #D4980A;
+  --amber-bg:  #3A2E10;
+  --blue:      #5A9FE8;
+  --blue-bg:   #1A2A3E;
+}
+
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--ui);
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--panel);
+  border-bottom: 1.5px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  flex-shrink: 0;
+}
+.header-title { font-size: 15px; font-weight: 700; letter-spacing: 0.03em; color: var(--text); white-space: nowrap; }
+.header-sep { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-md); flex-shrink: 0; }
+.status-dot.open { background: var(--green); box-shadow: 0 0 0 2px var(--green-bg); }
+
+/* ── TOOLBAR ── */
+.toolbar {
+  background: var(--panel);
+  border-bottom: 1.5px solid var(--border);
+  padding: 7px 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px 5px;
+  min-height: 48px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.tb-btn {
+  height: 32px; padding: 0 13px; border-radius: 6px;
+  border: 1.5px solid var(--border-md); background: var(--surface);
+  color: var(--text); font-family: var(--ui); font-size: 13px; font-weight: 500;
+  cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;
+  transition: background 0.1s, border-color 0.1s;
+}
+.tb-btn:hover { background: #E5E2DA; border-color: var(--text-muted); }
+.tb-btn:active { transform: scale(0.98); }
+.tb-btn.connect { border-color: var(--green); color: var(--green); background: var(--green-bg); font-weight: 600; }
+.tb-btn.connect:hover { background: #C6EDD8; }
+.tb-btn.disconnect { border-color: var(--red); color: var(--red); background: var(--red-bg); font-weight: 600; }
+.tb-btn.disconnect:hover { background: #F9CECE; }
+.tb-btn.ts-on { border-color: var(--green); color: var(--green); }
+.tb-btn.ts-off { border-color: var(--red); color: var(--red); }
+.tb-select {
+  height: 32px; padding: 0 8px; border-radius: 6px;
+  border: 1.5px solid var(--border-md); background: var(--surface);
+  color: var(--text); font-family: var(--ui); font-size: 13px; cursor: pointer; outline: none;
+}
+.tb-label { font-size: 12px; color: var(--text-muted); font-weight: 500; white-space: nowrap; }
+.tb-group { display: flex; align-items: center; gap: 5px; }
+.tb-sep { width: 1px; height: 22px; background: var(--border); margin: 0 3px; flex-shrink: 0; }
+
+/* ── BODY ── */
+.body-layout { flex: 1; min-height: 0; display: flex; overflow: hidden; }
+
+/* ── LEFT: Workflow ── */
+.left-panel {
+  width: 420px; flex-shrink: 0; background: var(--panel);
+  border-right: 1.5px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.panel-header {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.wf-scroll {
+  flex: 1; overflow-y: auto; padding: 12px 14px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.wf-scroll::-webkit-scrollbar { width: 5px; }
+.wf-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Workflow steps */
+.wf-step {
+  padding: 12px 14px; background: var(--surface); border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.wf-step-title {
+  font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px;
+}
+.wf-step-desc {
+  font-size: 12px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.5;
+}
+.wf-btn {
+  height: 34px; padding: 0 18px; border-radius: 6px;
+  border: 1.5px solid var(--blue); background: var(--blue-bg);
+  color: var(--blue); font-family: var(--ui); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background 0.1s;
+}
+.wf-btn:hover { background: #C8DEFF; }
+.wf-btn:active { transform: scale(0.98); }
+.wf-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.wf-btn.success { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+.wf-btn.danger { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+
+.wf-status {
+  font-size: 12px; font-weight: 600; padding: 4px 0; line-height: 1.5;
+}
+.wf-status.ok { color: var(--green); }
+.wf-status.err { color: var(--red); }
+.wf-status.warn { color: var(--amber); }
+.wf-status.info { color: var(--text-muted); }
+
+/* ── RIGHT: Results ── */
+.right-panel {
+  flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg);
+}
+.log-header {
+  display: flex; align-items: center; padding: 12px 20px;
+  background: var(--panel); border-bottom: 1.5px solid var(--border); gap: 10px;
+}
+.log-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.log-actions { margin-left: auto; display: flex; gap: 6px; }
+.log-btn {
+  height: 28px; padding: 0 12px; border-radius: 5px;
+  border: 1.5px solid var(--border-md); background: var(--surface);
+  color: var(--text-muted); font-family: var(--ui); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: background 0.1s;
+}
+.log-btn:hover { background: #E5E2DA; color: var(--text); }
+
+.results-wrap {
+  flex: 1; overflow-y: scroll; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 12px; min-height: 0;
+}
+.results-wrap::-webkit-scrollbar { width: 8px; }
+.results-wrap::-webkit-scrollbar-track { background: var(--surface); border-radius: 4px; }
+.results-wrap::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 4px; }
+
+/* Results table */
+.result-card {
+  background: var(--panel); border-radius: 8px; border: 1px solid var(--border);
+  overflow: hidden;
+}
+.result-card-title {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-muted);
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.result-table {
+  width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px;
+}
+.result-table th {
+  text-align: left; padding: 8px 12px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.result-table td {
+  padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text);
+}
+.result-table tr:last-child td { border-bottom: none; }
+.result-table .pass { color: var(--green); font-weight: 700; }
+.result-table .fail { color: var(--red); font-weight: 700; }
+.result-table .changed { color: var(--amber); font-weight: 700; }
+
+.tables-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.wf-btn-row { display: flex; gap: 8px; }
+
+/* Sub-tasks inside an Alfie step */
+.subtask-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.subtask {
+  padding: 8px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--panel);
+}
+.subtask.done { border-color: var(--green); }
+.subtask.failed { border-color: var(--red); }
+.subtask-head { display: flex; align-items: center; gap: 8px; }
+.subtask-num { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
+.subtask-title { font-size: 13px; font-weight: 600; flex: 1; min-width: 0; }
+.subtask-note { font-size: 12px; color: var(--text-muted); line-height: 1.45; margin: 4px 0 8px; }
+.subtask-btn { height: 30px; padding: 0 14px; font-size: 12px; }
+.subtask .wf-status:empty { display: none; }
+.result-card-note { font-size: 12px; color: var(--text-muted); padding: 8px 14px; border-bottom: 1px solid var(--border); }
+.result-table td.alfie-addr-cell {
+  text-align: center; vertical-align: middle; font-weight: 700; font-size: 14px; width: 130px;
+  border-right: 1px solid var(--border); border-bottom: none; background: var(--surface);
+}
+.wf-step.hidden { display: none; }
+
+/* ── DIP Switch Visual ── */
+.dip-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 8px;
+}
+.dip-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 10px; text-align: center;
+}
+.dip-card-label {
+  font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 6px;
+}
+.dip-body {
+  display: inline-flex; gap: 3px; background: #D63031; border-radius: 4px;
+  padding: 4px 5px 18px; position: relative;
+}
+.dip-body::before {
+  content: 'ON'; position: absolute; top: -1px; left: 4px;
+  font-size: 6px; font-weight: 800; color: #fff; letter-spacing: 0.05em;
+}
+.dip-sw {
+  width: 12px; height: 24px; background: #F5F0E8; border-radius: 2px;
+  display: flex; flex-direction: column; position: relative;
+}
+.dip-sw .dip-knob {
+  width: 10px; height: 10px; background: #FFF; border-radius: 1.5px;
+  border: 1px solid #CCC; position: absolute; left: 1px;
+  transition: top 0.15s;
+}
+.dip-sw.off .dip-knob { top: 12px; }
+.dip-sw.on .dip-knob { top: 1px; background: var(--green); border-color: var(--green); }
+.dip-sw-num {
+  font-size: 7px; font-weight: 700; color: #fff; margin-top: 2px;
+  text-align: center; position: absolute; bottom: -12px; left: 0; width: 100%;
+}
+[data-theme="dark"] .dip-sw { background: #3A3530; }
+[data-theme="dark"] .dip-sw .dip-knob { background: #E8E6E1; border-color: #9A9590; }
+
+/* ── Self Detect Buttons ── */
+.sd-btn {
+  width: 100%; height: 36px; border-radius: 6px;
+  border: 1.5px solid var(--border-md); background: var(--surface);
+  color: var(--text); font-family: var(--ui); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+}
+.sd-btn:hover:not(:disabled) { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); }
+.sd-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.sd-btn.active { border-color: var(--blue); background: var(--blue-bg); color: var(--blue); animation: pulse-border 1.5s infinite; }
+.sd-btn.done { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+.sd-btn.fail { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+@keyframes pulse-border { 0%,100% { box-shadow: 0 0 0 0 rgba(26,95,168,0.3); } 50% { box-shadow: 0 0 0 4px rgba(26,95,168,0.15); } }
+.sd-result {
+  font-family: var(--mono); font-size: 10px; color: var(--text-dim);
+  margin-top: 3px; text-align: center; min-height: 14px;
+}
+
+/* Result log rows */
+.res-row {
+  font-family: var(--mono); font-size: 12px; line-height: 1.8;
+  padding: 4px 8px; border-radius: 4px;
+}
+.res-row.rx { color: #7B3FA8; background: #F5E8FF; border: 1px solid #D8C0F0; }
+.res-row.cmd { color: var(--blue); background: var(--blue-bg); border: 1px solid #99C0F0; }
+.res-row.info { color: var(--text-muted); }
+.res-row.ok { color: var(--green); background: var(--green-bg); border: 1px solid var(--green); }
+.res-row.err { color: var(--red); background: var(--red-bg); border: 1px solid var(--red); }
+
+[data-theme="dark"] .res-row.rx { background: #2A1A3A; border-color: #5A3A7A; }
+[data-theme="dark"] .res-row.cmd { background: var(--blue-bg); border-color: #3A5A8A; }
+[data-theme="dark"] .res-row.ok { background: var(--green-bg); border-color: #2A5A3A; }
+[data-theme="dark"] .res-row.err { background: var(--red-bg); border-color: #5A2A2A; }
+
+/* API warn */
+.api-warn {
+  margin: 12px 20px 0; background: var(--amber-bg); border: 1.5px solid #D4980A;
+  border-radius: 7px; padding: 9px 14px; font-size: 12.5px; color: var(--amber); font-weight: 500;
+}
+
+/* Theme button */
+.theme-btn {
+  height: 32px; width: 32px; border-radius: 6px;
+  border: 1.5px solid var(--border-md); background: var(--surface);
+  color: var(--text); cursor: pointer; display: flex; align-items: center;
+  justify-content: center; transition: background 0.15s; flex-shrink: 0;
+}
+.theme-btn:hover { background: var(--blue-bg); border-color: var(--blue); }
+
+/* Numeration toggle switch */
+.num-toggle-group {
+  display: flex; align-items: center; gap: 7px;
+  padding: 3px 10px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: var(--surface);
+}
+.num-toggle-label {
+  font-size: 12px; font-weight: 600; color: var(--text-muted); white-space: nowrap;
+}
+.num-switch {
+  position: relative; display: inline-block; width: 34px; height: 19px; flex-shrink: 0;
+}
+.num-switch input { opacity: 0; width: 0; height: 0; }
+.num-switch-slider {
+  position: absolute; cursor: pointer; inset: 0;
+  background: var(--border-md); border-radius: 20px; transition: background 0.15s;
+}
+.num-switch-slider::before {
+  content: ''; position: absolute; height: 13px; width: 13px; left: 3px; bottom: 3px;
+  background: #fff; border-radius: 50%; transition: transform 0.15s;
+}
+.num-switch input:checked + .num-switch-slider { background: var(--green); }
+.num-switch input:checked + .num-switch-slider::before { transform: translateX(15px); }
+.num-switch input:disabled + .num-switch-slider { opacity: 0.5; cursor: not-allowed; }
+
+/* Dark mode overrides */
+[data-theme="dark"] .tb-btn:hover { background: #35353D; }
+[data-theme="dark"] .tb-btn.connect:hover { background: #1F3D2D; }
+[data-theme="dark"] .tb-btn.disconnect:hover { background: #451F1F; }
+[data-theme="dark"] .log-btn:hover { background: #35353D; }
+[data-theme="dark"] .wf-btn:hover { background: #253A52; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="status-dot" id="statusDot"></div>
+  <div class="header-title">PD Locker Config</div>
+  <div class="header-sep"></div>
+  <span style="font-size:12px; color:var(--text-muted);">Product Detection Locker configuration</span>
+  <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle Dark/Light mode">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+    <span class="tb-label" id="apiBadge" style="padding:3px 10px; border-radius:20px; border:1.5px solid var(--border);">checking…</span>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="tb-group">
+    <button class="tb-btn connect" id="connectBtn" onclick="openPort()">⬡ Connect COM Port</button>
+    <button class="tb-btn disconnect" id="disconnectBtn" onclick="closePort()" style="display:none;">✕ Disconnect</button>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-group">
+    <span class="tb-label">Send Line End</span>
+    <select class="tb-select" id="eolSelect">
+      <option value="CR" selected>CR (\r)</option>
+      <option value="LF">LF (\n)</option>
+      <option value="CRLF">CR+LF</option>
+    </select>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-group">
+    <span class="tb-label">Baud Rate</span>
+    <select class="tb-select" id="baudSelect">
+      <option value="9600">9600</option>
+      <option value="115200" selected>115200</option>
+    </select>
+  </div>
+  <div class="tb-sep"></div>
+  <button class="tb-btn ts-on" id="tsBtn" onclick="sendTimestampOff()">⏱ Timestamp: ON</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="btnDownloadAllTop" onclick="downloadAllTop()">↓ Download Log &amp; Report</button>
+</div>
+
+<!-- BODY -->
+<div class="body-layout">
+
+  <!-- LEFT: Workflow -->
+  <div class="left-panel">
+    <div class="panel-header">
+      <div class="panel-title">Workflow</div>
+    </div>
+    <div class="wf-scroll" id="wfScroll">
+
+      <!-- Tester Name & Sales Order -->
+      <div class="wf-step" id="step-tester">
+        <div class="wf-step-title">Tested By</div>
+        <input type="text" id="testerNameInput" class="cmd-input-full" placeholder="Your name" style="width:100%; height:34px; padding:0 10px; border-radius:6px; border:1.5px solid var(--border-md); background:var(--surface); color:var(--text); font-family:var(--ui); font-size:13px;" oninput="saveTesterName()">
+      </div>
+
+      <div class="wf-step" id="step-so">
+        <div class="wf-step-title">Sales Order Details <span style="color:var(--red);">*</span></div>
+        <input type="text" id="soDetailsInput" class="cmd-input-full" placeholder="e.g. S36135" maxlength="6" style="width:100%; height:34px; padding:0 10px; border-radius:6px; border:1.5px solid var(--border-md); background:var(--surface); color:var(--text); font-family:var(--ui); font-size:13px;" oninput="saveSoDetails()">
+        <div class="wf-status err" id="soRequiredHint">Required — format: S followed by 5 digits, e.g. S36135.</div>
+      </div>
+
+      <!-- Step 1: Count Alfie -->
+      <div class="wf-step" id="step-count">
+        <div class="wf-step-title" id="title-count">Step 1 — Count Alfies</div>
+        <div class="wf-step-desc">Reads serial no., firmware, PCB PN (expects E0999) and latch over current limit.</div>
+        <button class="wf-btn" id="btnCount" onclick="runCountAlfie()" disabled>Count Alfie</button>
+        <div class="wf-status" id="countStatus"></div>
+      </div>
+
+      <!-- Steps 2…N: one step per Alfie found in Step 1 (built by buildAlfieSteps) -->
+      <div id="alfieSteps" style="display:contents;"></div>
+
+      <!-- Final Step: Download Records -->
+      <div class="wf-step hidden" id="step-download">
+        <div class="wf-step-title">Final Step — Download Records</div>
+        <div class="wf-step-desc">One click downloads the command log, then the full report, automatically.</div>
+        <button class="wf-btn" id="btnDownloadAll" onclick="downloadAllStep()">Download Log &amp; Report</button>
+        <div class="wf-status" id="downloadStepStatus"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: Results -->
+  <div class="right-panel">
+    <div id="apiWarn" class="api-warn" style="display:none;">
+      <strong>Web Serial API unavailable.</strong> Use Chrome, Edge, or Firefox 151+ on HTTPS/localhost.
+    </div>
+    <div class="log-header">
+      <span class="log-title">Results</span>
+      <div class="log-actions">
+        <button class="log-btn" onclick="clearResults()">Clear</button>
+      </div>
+    </div>
+    <div class="results-wrap" id="resultsWrap"></div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  PD Locker Config — Script
+// ══════════════════════════════════════════════
+
+const HAS_API = ('serial' in navigator);
+const EXPECTED_PCB_PN = 'E0999';   // register 0x20, e.g. t01F47220E703 → E703 LE = 999 → E0999
+let port = null, writer = null;
+let portLabel = 'PORT';
+let rawLog = [];  // { ts: Date, dir: 'TX'|'RX', text: string }
+
+// ── Helpers ──
+function hex(v) { return (v||0).toString(16).padStart(4,'0').toUpperCase(); }
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+function eolSuffix() {
+  const v = document.getElementById('eolSelect').value;
+  if (v === 'CR') return '\r'; if (v === 'LF') return '\n'; return '\r\n';
+}
+
+// ── Little-endian helpers ──
+function swapHex16(hex4) {
+  if (hex4.length !== 4) return hex4;
+  return hex4.substring(2, 4) + hex4.substring(0, 2);
+}
+function swapBytesHex(hex) {
+  const bytes = [];
+  for (let i = 0; i < hex.length; i += 2) bytes.push(hex.substring(i, i + 2));
+  return bytes.reverse().join('');
+}
+
+// ── Send command ──
+// noLog = true keeps the command (and the adapter's "z" acknowledgement of it) out of the raw log
+async function sendCmd(raw, noLog) {
+  const full = raw + eolSuffix();
+  const encoded = new TextEncoder().encode(full);
+  if (writer) {
+    await writer.write(encoded);
+    if (noLog) unloggedAcks++;
+    else rawLog.push({ ts: new Date(), dir: 'TX', text: raw });
+  }
+}
+
+// Every received line goes through here: raw log (unless filtered out), then the active listener
+let unloggedAcks = 0;     // "z" acknowledgements still expected for commands that were not logged
+let rxLogFilter = null;   // optional (line) => true to keep a received frame out of the raw log
+function handleRxLine(seg) {
+  rxLines.push(seg);
+  let skip = false;
+  if (seg === 'z' && unloggedAcks > 0) { unloggedAcks--; skip = true; }
+  else if (/^t[0-9a-f]{2}F5732A/i.test(seg)) { skip = true; unloggedAcks = 0; }   // door map reply (door status)
+  else if (rxLogFilter && rxLogFilter(seg)) skip = true;
+  if (!skip) rawLog.push({ ts: new Date(), dir: 'RX', text: seg });
+  if (rxCallback) rxCallback(seg);
+}
+
+// ── Timestamp OFF ──
+async function sendTimestampOff() {
+  const cmds = ['C','Z0','O'];
+  for (const c of cmds) { await sendCmd(c); await delay(150); }
+  document.getElementById('tsBtn').textContent = '⏱ Timestamp: OFF';
+  document.getElementById('tsBtn').className = 'tb-btn ts-off';
+  addResult('Timestamp turned OFF', 'info');
+}
+
+// ── Port ──
+let readerLoopActive = false;
+let activeReader = null;
+let readerDone = Promise.resolve();
+let rxCallback = null;
+let rxLines = [];
+
+async function openPort() {
+  if (!HAS_API) { addResult('Web Serial API unavailable.', 'err'); return; }
+  try {
+    port = await navigator.serial.requestPort();
+    const baud = parseInt(document.getElementById('baudSelect').value);
+    await port.open({ baudRate: baud });
+    const info = port.getInfo();
+    writer = port.writable.getWriter();
+    portLabel = `VID${hex(info.usbVendorId)}`;
+    addResult(`Port opened — VID:0x${hex(info.usbVendorId)} PID:0x${hex(info.usbProductId)} @ ${baud} baud`, 'ok');
+    setConnected(true);
+    startReader();
+    // Auto timestamp off
+    await delay(300);
+    await sendTimestampOff();
+    // Enable Count Alfie only if Sales Order Details is also filled
+    validateWorkflowStart();
+  } catch(e) {
+    addResult('Failed to open port: ' + e.message, 'err');
+    port = null; writer = null;
+  }
+}
+
+function startReader() {
+  readerDone = (async () => {
+    readerLoopActive = true;
+    let lineBuffer = '';
+    let flushTimer = null;
+
+    function splitOnT(str) {
+      return str.split(/(?=[Tt])/).map(s => s.trim()).filter(s => s.length > 0);
+    }
+
+    function scheduleFlush() {
+      if (flushTimer) clearTimeout(flushTimer);
+      flushTimer = setTimeout(() => {
+        if (lineBuffer.trim()) {
+          splitOnT(lineBuffer.trim()).forEach(handleRxLine);
+          lineBuffer = '';
+        }
+        flushTimer = null;
+      }, 100);
+    }
+
+    try {
+      while (port && port.readable && readerLoopActive) {
+        activeReader = port.readable.getReader();
+        try {
+          while (true) {
+            const { value, done } = await activeReader.read();
+            if (done) break;
+            if (!value) continue;
+            const chunk = new TextDecoder().decode(value);
+            for (const ch of chunk) {
+              if (ch === '\r') continue;
+              if (ch === '\n') {
+                if (lineBuffer.trim()) {
+                  splitOnT(lineBuffer.trim()).forEach(handleRxLine);
+                }
+                lineBuffer = '';
+              } else {
+                lineBuffer += ch;
+              }
+            }
+            scheduleFlush();
+          }
+        } catch (err) {
+          if (readerLoopActive && err.name !== 'AbortError') {
+            addResult('Read error: ' + err.message, 'err');
+          }
+        } finally {
+          try { activeReader.releaseLock(); } catch(_) {}
+          activeReader = null;
+        }
+      }
+    } catch(e) { if (readerLoopActive) addResult('Reader error: ' + e.message, 'err'); }
+    readerLoopActive = false;
+  })();
+}
+
+async function closePort() {
+  readerLoopActive = false;
+  if (activeReader) { try { await activeReader.cancel(); } catch(_) {} }
+  await readerDone;
+  try {
+    if (writer) { try { writer.releaseLock(); } catch(_) {} writer = null; }
+    if (port) { try { await port.close(); } catch(e) { addResult('Error closing: ' + e.message, 'err'); } port = null; }
+    addResult('Port closed.', 'info');
+  } catch(e) { addResult('Disconnect error: ' + e.message, 'err'); }
+  setConnected(false);
+  document.getElementById('btnCount').disabled = true;
+}
+
+function setConnected(open) {
+  document.getElementById('connectBtn').style.display = open ? 'none' : '';
+  document.getElementById('disconnectBtn').style.display = open ? '' : 'none';
+  document.getElementById('statusDot').className = 'status-dot' + (open ? ' open' : '');
+}
+
+// ── Results panel ──
+function addResult(msg, cls) {
+  const wrap = document.getElementById('resultsWrap');
+  const row = document.createElement('div');
+  row.className = 'res-row ' + (cls || '');
+  row.textContent = msg;
+  wrap.appendChild(row);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function addResultHTML(html) {
+  const wrap = document.getElementById('resultsWrap');
+  const el = document.createElement('div');
+  el.innerHTML = html;
+  wrap.appendChild(el);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function clearResults() {
+  document.getElementById('resultsWrap').innerHTML = '';
+}
+
+// ── Collect RX lines with timeout ──
+function collectResponses(filter, timeout, maxCount) {
+  return new Promise(resolve => {
+    const collected = [];
+    let timer = null;
+    let settled = false;
+    const waitForever = !timeout || timeout <= 0;
+
+    function done() {
+      if (settled) return;
+      settled = true;
+      rxCallback = null;
+      if (timer) clearTimeout(timer);
+      resolve(collected);
+    }
+
+    if (!waitForever) timer = setTimeout(done, timeout);
+
+    rxCallback = (line) => {
+      if (line === 'z') return; // transceiver ack, skip
+      if (filter(line)) {
+        collected.push(line);
+        if (waitForever) {
+          // Resolve immediately once we have enough (or after this single match if no maxCount)
+          if (maxCount && collected.length >= maxCount) { done(); return; }
+          if (!maxCount) done();
+          return;
+        }
+        // Reset timer on each response to allow more to come
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(done, 300);
+        if (maxCount && collected.length >= maxCount) done();
+      }
+    };
+  });
+}
+
+// ── Alfie Register decoders (little-endian) ──
+let alfieData = {};  // Global — persists across steps
+function decodeAlfieSerial(valueHex) {
+  if (valueHex.length < 8) return valueHex.toUpperCase();
+  return swapBytesHex(valueHex.substring(0, 8)).toUpperCase();
+}
+
+function decodeAlfieFirmware(valueHex) {
+  if (valueHex.length < 8) return valueHex.toUpperCase();
+  const major = parseInt(valueHex.substring(0, 2), 16);
+  const minor = parseInt(valueHex.substring(2, 4), 16);
+  const build = parseInt(swapHex16(valueHex.substring(4, 8)), 16);
+  if (isNaN(major) || isNaN(minor) || isNaN(build)) return valueHex.toUpperCase();
+  return `${major}.${minor}.${build}`;
+}
+
+// PCB PN: 2 bytes little-endian → decimal → "E" + 4 digits (E703 → 03E7 → 999 → E0999)
+function decodeAlfiePcbPn(valueHex) {
+  if (valueHex.length < 4) return valueHex.toUpperCase();
+  const dec = parseInt(swapHex16(valueHex.substring(0, 4)), 16);
+  if (isNaN(dec)) return valueHex.toUpperCase();
+  return `E${String(dec).padStart(4, '0')}`;
+}
+
+// ── Step 1: Count Alfie ──
+let countStarted = false;
+
+async function runCountAlfie() {
+  const btn = document.getElementById('btnCount');
+  const status = document.getElementById('countStatus');
+  countStarted = true;
+  btn.disabled = true;
+  status.className = 'wf-status info';
+  status.textContent = 'Reading serial numbers…';
+
+  // Clear previous results
+  clearResults();
+
+  // Register report from any Alfie for the given register id: t{addr}F{dlc}72{reg}…
+  const isRegReport = reg => line =>
+    line.length >= 9 && line[0].toLowerCase() === 't' && line[3].toUpperCase() === 'F' &&
+    line.substring(5, 7) === '72' && line.substring(7, 9).toLowerCase() === reg;
+
+  // 1. Serial Numbers
+  addResult('Sending: Read Serial Numbers (broadcast)…', 'cmd');
+  await sendCmd('t00F25223');
+  const snResponses = await collectResponses(isRegReport('23'), 2000);
+  addResult(`Received ${snResponses.length} serial number response(s)`, 'info');
+
+  // 2. Firmware Versions
+  await delay(300);
+  status.textContent = 'Reading firmware versions…';
+  addResult('Sending: Read Firmware Versions (broadcast)…', 'cmd');
+  await sendCmd('t00F25276');
+  const fwResponses = await collectResponses(isRegReport('76'), 2000);
+  addResult(`Received ${fwResponses.length} firmware response(s)`, 'info');
+
+  // 3. PCB PN (register 0x20)
+  await delay(300);
+  status.textContent = 'Reading PCB PN…';
+  addResult('Sending: Read PCB PN (broadcast)…', 'cmd');
+  await sendCmd('t00F25220');
+  const pnResponses = await collectResponses(isRegReport('20'), 2000);
+  addResult(`Received ${pnResponses.length} PCB PN response(s)`, 'info');
+
+  // 4. Latch Over Current Limit (register 0x0D, 2 bytes little-endian, mA)
+  await delay(300);
+  status.textContent = 'Reading latch over current limits…';
+  addResult('Sending: Read Latch Over Current Limit (broadcast)…', 'cmd');
+  await sendCmd('t00F2520D');
+  const clResponses = await collectResponses(isRegReport('0d'), 2000);
+  addResult(`Received ${clResponses.length} latch over current limit response(s)`, 'info');
+
+  // Build lookup maps
+  alfieData = {};
+
+  snResponses.forEach(line => {
+    const addr = line.substring(1, 3).toUpperCase();
+    const valueHex = line.substring(9);
+    if (!alfieData[addr]) alfieData[addr] = {};
+    alfieData[addr].serial = decodeAlfieSerial(valueHex);
+  });
+
+  fwResponses.forEach(line => {
+    const addr = line.substring(1, 3).toUpperCase();
+    const valueHex = line.substring(9);
+    if (!alfieData[addr]) alfieData[addr] = {};
+    alfieData[addr].firmware = decodeAlfieFirmware(valueHex);
+  });
+
+  pnResponses.forEach(line => {
+    const addr = line.substring(1, 3).toUpperCase();
+    const valueHex = line.substring(9);
+    if (!alfieData[addr]) alfieData[addr] = {};
+    alfieData[addr].pcbPn = decodeAlfiePcbPn(valueHex);
+  });
+
+  clResponses.forEach(line => {
+    const addr = line.substring(1, 3).toUpperCase();
+    const valueHex = line.substring(9);
+    if (!alfieData[addr]) alfieData[addr] = {};
+    const raw = parseInt(swapHex16(valueHex.substring(0, 4)), 16);
+    alfieData[addr].currentLimit = isNaN(raw) ? valueHex.toUpperCase() : `${raw}mA`;
+  });
+
+  // Build table
+  const addresses = Object.keys(alfieData).sort();
+  const count = addresses.length;
+  let pcbPnMismatch = false;
+
+  let tableHTML = `<div class="result-card">
+    <div class="result-card-title">Connected Alfie(s) — ${count} found</div>
+    <table class="result-table">
+      <tr><th>SN</th><th>Address</th><th>Serial No.</th><th>Firmware</th><th>PCB PN</th><th>Latch Over Current Limit</th></tr>`;
+
+  addresses.forEach((addr, i) => {
+    const d = alfieData[addr];
+    const addrDec = parseInt(addr, 16);
+    const pnMatch = d.pcbPn === EXPECTED_PCB_PN;
+    if (!pnMatch) pcbPnMismatch = true;
+    tableHTML += `<tr>
+      <td>${i + 1}</td>
+      <td>${addr} (${addrDec})</td>
+      <td>${d.serial || '—'}</td>
+      <td>${d.firmware || '—'}</td>
+      <td class="${pnMatch ? 'pass' : 'fail'}">${d.pcbPn || '—'}${pnMatch ? '' : ' ⚠'}</td>
+      <td>${d.currentLimit || '—'}</td>
+    </tr>`;
+  });
+
+  tableHTML += '</table></div>';
+  addResultHTML(tableHTML);
+
+  if (pcbPnMismatch) {
+    addResultHTML(`<div class="result-card" style="padding:10px 14px;">
+      <span style="color:var(--red); font-weight:700; font-size:12px;">⚠ PCB PN Mismatch</span>
+      <span style="font-size:12px; color:var(--text-muted); margin-left:8px;">One or more Alfies are not PCB PN ${EXPECTED_PCB_PN}.</span>
+    </div>`);
+  }
+
+  if (count === 0) {
+    status.className = 'wf-status err';
+    status.textContent = '✗ No Alfies found';
+  } else if (pcbPnMismatch) {
+    status.className = 'wf-status err';
+    status.textContent = `✗ ${count} Alfie(s) found — PCB PN mismatch`;
+  } else {
+    status.className = 'wf-status ok';
+    status.textContent = `✓ ${count} Alfie(s) found — PCB PN ${EXPECTED_PCB_PN}`;
+  }
+
+  // Build one step per Alfie found, then show the first of them
+  buildAlfieSteps(addresses);
+}
+
+// ══════════════════════════════════════════════
+//  Alfie frame decoders — from the Alfie Test Portal (script.js), so messages read
+//  as they do in the portal's Activity Log. The register map is cut down to the
+//  registers this portal reads or writes.
+// ══════════════════════════════════════════════
+// ── Register ID Map ──
+const REGISTER_MAP = {
+  '0d': { name: 'Latch Over-Load Current Limit',       unit: 'ma' },
+  '12': { name: 'Active Latches Map Array',            unit: 'active_latch' },
+  '16': { name: 'Latch PCB Module Map Array',          unit: 'pcb_module' },
+  '20': { name: 'PCB PN',                               unit: 'pcbpn' },
+  '23': { name: 'Serial Number',                       unit: 'serial' },
+  '76': { name: 'Firmware Version',                    unit: 'version' },
+};
+
+function getRegName(id) {
+  const key = id.toLowerCase();
+  return REGISTER_MAP[key] ? REGISTER_MAP[key].name : null;
+}
+
+// Look up register: try 4-char ID first, then 2-char
+function lookupRegister(dataHex) {
+  const try4 = dataHex.substring(0, 4).toLowerCase();
+  if (REGISTER_MAP[try4]) return { reg: REGISTER_MAP[try4], idLen: 4 };
+  const try2 = dataHex.substring(0, 2).toLowerCase();
+  if (REGISTER_MAP[try2]) return { reg: REGISTER_MAP[try2], idLen: 2 };
+  return null;
+}
+
+
+// Decode a register value based on unit type
+function decodeRegValue(unit, valueHex) {
+  switch (unit) {
+    case 'ma': {
+      const raw = parseInt(swapBytesHex(valueHex.substring(0, 4)), 16);
+      if (isNaN(raw)) return valueHex.toUpperCase();
+      return `${raw}mA`;
+    }
+    case 'version': {
+      // Byte 0: Major, Byte 1: Minor, Bytes 2-3: Build (little-endian)
+      if (valueHex.length < 8) return valueHex.toUpperCase();
+      const major = parseInt(valueHex.substring(0, 2), 16);
+      const minor = parseInt(valueHex.substring(2, 4), 16);
+      const build = parseInt(swapHex16(valueHex.substring(4, 8)), 16);
+      if (isNaN(major) || isNaN(minor) || isNaN(build)) return valueHex.toUpperCase();
+      return `${major}.${minor}.${build}`;
+    }
+    case 'serial': {
+      if (valueHex.length < 8) return valueHex.toUpperCase();
+      return swapBytesHex(valueHex.substring(0, 8)).toUpperCase();
+    }
+    case 'pcbpn': {
+      // 2 bytes little-endian → swap → decimal with E prefix
+      if (valueHex.length < 4) return valueHex.toUpperCase();
+      const swapped = swapBytesHex(valueHex.substring(0, 4));
+      const dec = parseInt(swapped, 16);
+      if (isNaN(dec)) return valueHex.toUpperCase();
+      return `E${String(dec).padStart(4, '0')}`;
+    }
+    case 'active_latch': {
+      // Latch position (2 hex) + value (4 hex LE). The array is zero-based,
+      // so the shown value is raw + 1 (raw 0–16 → 1–17).
+      if (valueHex.length < 6) return valueHex.toUpperCase();
+      const pos = parseInt(valueHex.substring(0, 2), 16);
+      const rawHex = valueHex.substring(2, 6);
+      const raw = parseInt(swapBytesHex(rawHex), 16);
+      if (isNaN(pos) || isNaN(raw)) return valueHex.toUpperCase();
+      if (raw > 16) return `Active Latch ${pos} -> Out of range (raw 0x${rawHex.toUpperCase()})`;
+      return `Active Latch ${pos} -> ${raw + 1}`;
+    }
+    case 'pcb_module': {
+      // Latch position (2 hex) + PCB module value (4 hex, compared as sent)
+      if (valueHex.length < 6) return valueHex.toUpperCase();
+      const pos = parseInt(valueHex.substring(0, 2), 16);
+      if (isNaN(pos)) return valueHex.toUpperCase();
+      const raw = valueHex.substring(2, 6).toUpperCase();
+      const modules = { 'FFFF': 'Default', '0300': 'Waterfall', '0100': 'Sensor Curtain' };
+      return `Latch ${pos} -> PCB Module: ${modules[raw] || `Unknown (${raw})`}`;
+    }
+    default:
+      return valueHex.toUpperCase();
+  }
+}
+
+// ── 72 Register Report decoder ──
+function decodeRegReport(s) {
+  if (s.length < 9) return '';
+  const dataAfterFrame = s.substring(7); // everything after report frame (72)
+  const match = lookupRegister(dataAfterFrame);
+
+  if (!match) {
+    const regId = s.substring(7, 9).toUpperCase();
+    const rest = s.substring(9).toUpperCase();
+    return rest ? `Register ${regId}: ${rest}` : `Register ${regId}`;
+  }
+
+  const { reg, idLen } = match;
+  const valueHex = dataAfterFrame.length > idLen ? dataAfterFrame.substring(idLen) : '';
+
+  if (!valueHex) return reg.name;
+
+  const decoded = decodeRegValue(reg.unit, valueHex);
+  if (reg.unit === 'active_latch' && decoded.startsWith('Active Latch')) return decoded;
+  if (reg.unit === 'pcb_module' && decoded.startsWith('Latch ')) return decoded;
+  return `${reg.name}: ${decoded}`;
+}
+
+// ── 73 Information Report sub-code decoder ──
+function decodeInfoReport(s) {
+  if (s.length < 9) return '';
+  const alfie   = s.substring(1, 3);
+  const subCode = s.substring(7, 9).toLowerCase();
+  const data    = s.length >= 11 ? s.substring(9, 11) : '';
+
+  switch (subCode) {
+    case '71': {
+      // Latches Detected — data = count in hex
+      const count = parseInt(data, 16);
+      return isNaN(count) ? '' : `${count} Latches Detected`;
+    }
+    case '50':
+      // Factory Reset
+      return 'Factory Reset';
+    case '6f': {
+      // Latch Opened — data = latch number in hex
+      const latch = parseInt(data, 16);
+      return isNaN(latch) ? '' : `Latch ${latch} Opened`;
+    }
+    case '63': {
+      // Latch Closed — data = latch number in hex
+      const latch = parseInt(data, 16);
+      return isNaN(latch) ? '' : `Latch ${latch} Closed`;
+    }
+    case '5e':
+      // Bootloader Mode
+      return `Alfie ${alfie} Entered in Bootloader Mode`;
+    case '7c': {
+      // Alfie Reset — 4 bytes (8 hex chars) reset cause
+      const cause = s.length >= 17 ? s.substring(9, 17).toUpperCase() : '';
+      let causeMsg = 'Reset Itself';
+      if (cause === '40000000') causeMsg = 'Soft Reset';
+      else if (cause === 'C0000000') causeMsg = 'Hard Reset';
+      return `Alfie ${alfie} ${causeMsg}`;
+    }
+    case '2a': {
+      // All Latch State — 3-byte bitmap (bit 1 = Closed, bit 0 = Open)
+      if (s.length < 15) return '';
+      const b1 = parseInt(s.substring(9, 11), 16);
+      const b2 = parseInt(s.substring(11, 13), 16);
+      const b3 = parseInt(s.substring(13, 15), 16);
+      if (isNaN(b1) || isNaN(b2) || isNaN(b3)) return '';
+      const openList = [], closeList = [];
+      for (let i = 0; i < 8; i++) { (b1 & (1 << i) ? closeList : openList).push(i + 1); }
+      for (let i = 0; i < 8; i++) { (b2 & (1 << i) ? closeList : openList).push(i + 9); }
+      (b3 & 1 ? closeList : openList).push(17);
+      const parts = [];
+      if (openList.length)  parts.push(openList.join(', ') + ' Open');
+      if (closeList.length) parts.push(closeList.join(', ') + ' Closed');
+      return parts.join(' and ');
+    }
+
+    // ── Door status ──
+    case '75': {
+      // Door Unlocked (also Latch Strike Out — same sub-code)
+      if (s.length < 11) return '';
+      const door = parseInt(s.substring(9, 11), 16);
+      return isNaN(door) ? '' : `Door ${door} Unlocked`;
+    }
+    case '6b': {
+      const door = parseInt(s.substring(9, 11), 16);
+      return isNaN(door) ? '' : `Door ${door} Locked`;
+    }
+    case '70': {
+      const door = parseInt(s.substring(9, 11), 16);
+      return isNaN(door) ? '' : `Door ${door} Partially Unlocked`;
+    }
+    case '73': {
+      const door = parseInt(s.substring(9, 11), 16);
+      return isNaN(door) ? '' : `Door ${door} Partially Locked`;
+    }
+
+    // ── Compartment status ──
+    case '29': {
+      const pos = parseInt(s.substring(9, 11), 16);
+      return isNaN(pos) ? '' : `Compartment ${pos} Unoccupied`;
+    }
+    case '28': {
+      const pos = parseInt(s.substring(9, 11), 16);
+      return isNaN(pos) ? '' : `Compartment ${pos} Occupied`;
+    }
+
+    // ── Latch Strike ──
+    case '69': {
+      const pos = parseInt(s.substring(9, 11), 16);
+      return isNaN(pos) ? '' : `Latch ${pos} Strike In`;
+    }
+
+    default:
+      return '';
+  }
+}
+
+
+// ── 77 Warning Report sub-code decoder ──
+function decodeWarnReport(s) {
+  if (s.length < 9) return '';
+  const alfie   = s.substring(1, 3);
+  const subCode = s.substring(7, 9).toLowerCase();
+
+  switch (subCode) {
+    case '30': {
+      // WARN_OVERCURRENT — latch no (2 hex) + current (4 hex, little-endian, mA)
+      if (s.length < 15) return '';
+      const latch = parseInt(s.substring(9, 11), 16);
+      const rawHex = s.substring(11, 15);
+      const mA = parseInt(swapHex16(rawHex), 16);
+      if (isNaN(latch) || isNaN(mA)) return '';
+      return `Over Current on Latch ${latch} ${mA}mA`;
+    }
+    case '31': {
+      // WARN_OVERVOLTAGE — voltage (4 hex, little-endian, mV)
+      if (s.length < 13) return '';
+      const rawHex = s.substring(9, 13);
+      const mV = parseInt(swapHex16(rawHex), 16);
+      if (isNaN(mV)) return '';
+      return `Over Voltage ${mV}mV`;
+    }
+    case '32': {
+      // WARN_UNDERVOLTAGE — voltage (4 hex, little-endian, mV)
+      if (s.length < 13) return '';
+      const rawHex = s.substring(9, 13);
+      const mV = parseInt(swapHex16(rawHex), 16);
+      if (isNaN(mV)) return '';
+      return `Under Voltage ${mV}mV`;
+    }
+    case '33': {
+      // WARN_LATCH_SHORT_CIRCUIT — latch no (2 hex)
+      if (s.length < 11) return '';
+      const latch = parseInt(s.substring(9, 11), 16);
+      return isNaN(latch) ? '' : `Latch ${latch} Short Circuit`;
+    }
+    case '64': {
+      // Light warnings — 1 byte sub-type
+      if (s.length < 11) return '';
+      const sub = s.substring(9, 11).toLowerCase();
+      if (sub === '6d') return 'Lights Count Mismatch';
+      if (sub === '62') return 'Light Broken or Disconnected';
+      if (sub === '63') return 'Frame CRC Fail';
+      return '';
+    }
+    case '74': {
+      // Latch Tempered — latch no (2 hex)
+      if (s.length < 11) return '';
+      const latch = parseInt(s.substring(9, 11), 16);
+      return isNaN(latch) ? '' : `Latch ${latch} Tempered`;
+    }
+    case '6d': {
+      // Memory/Page warnings — 1 byte cause code
+      if (s.length < 11) return '';
+      const cause = s.substring(9, 11).toLowerCase();
+      if (cause === '70') return 'Page Write Fail';
+      if (cause === '76') return 'Page Verify Fail';
+      return '';
+    }
+    case '6f': {
+      // Fail to Open Latch — latch no (2 hex)
+      if (s.length < 11) return '';
+      const latch = parseInt(s.substring(9, 11), 16);
+      return isNaN(latch) ? '' : `Fail to Open Latch ${latch}, Trying Again`;
+    }
+    case '6c': {
+      // Fatal Current Limit Switch Fault — switch no (2 hex) + retry count (2 hex)
+      if (s.length < 11) return '';
+      const sw = parseInt(s.substring(9, 11), 16);
+      const retry = s.length >= 13 ? parseInt(s.substring(11, 13), 16) : 0;
+      if (isNaN(sw)) return '';
+      return `Switch ${sw} Fatal Current Limit Fault, Count ${retry || 1}`;
+    }
+    default:
+      return '';
+  }
+}
+
+// ── 66 Failure Report sub-code decoder ──
+function decodeFailReport(s) {
+  if (s.length < 9) return '';
+  const alfie   = s.substring(1, 3);
+  const subCode = s.substring(7, 9).toLowerCase();
+  const data    = s.length >= 11 ? s.substring(9, 11) : '';
+  const data4   = s.length >= 13 ? s.substring(9, 13) : '';
+
+  switch (subCode) {
+    // ── Latch failures (Position) ──
+    case '6f': {
+      const latch = parseInt(data, 16);
+      return isNaN(latch) ? '' : `Latch ${latch} Open Failure`;
+    }
+    case '3f': {
+      const latch = parseInt(data, 16);
+      return isNaN(latch) ? '' : `Latch ${latch} State Unknown`;
+    }
+    case '78': {
+      // Latch Connection Broken — position (2 hex) + current (4 hex, little-endian, mA)
+      if (s.length < 15) { const l = parseInt(data, 16); return isNaN(l) ? '' : `Latch ${l} Connection Broken`; }
+      const latch = parseInt(data, 16);
+      const rawHex = s.substring(11, 15);
+      const mA = parseInt(swapHex16(rawHex), 16);
+      if (isNaN(latch)) return '';
+      if (isNaN(mA)) return `Latch ${latch} Connection Broken`;
+      return `Latch ${latch} Connection Broken ${mA}mA`;
+    }
+    case '3e': {
+      // Latch Over-current — position (2 hex) + current (4 hex, little-endian, mA)
+      if (s.length < 15) { const l = parseInt(data, 16); return isNaN(l) ? '' : `Latch ${l} Over-current`; }
+      const latch = parseInt(data, 16);
+      const rawHex = s.substring(11, 15);
+      const mA = parseInt(swapHex16(rawHex), 16);
+      if (isNaN(latch)) return '';
+      if (isNaN(mA)) return `Latch ${latch} Over-current`;
+      return `Latch ${latch} Over-current ${mA}mA`;
+    }
+    case '7b': {
+      const latch = parseInt(data, 16);
+      return isNaN(latch) ? '' : `Latch ${latch} Out of Range`;
+    }
+    case '79': {
+      const latch = parseInt(data, 16);
+      return isNaN(latch) ? '' : `Latch ${latch} Busy Failure`;
+    }
+    case '33': {
+      const latch = parseInt(data, 16);
+      return isNaN(latch) ? '' : `Latch ${latch} Short Circuit`;
+    }
+    case '6c': {
+      // Fatal Current Limit Switch Fault — switch no (2 hex) + retry count (2 hex)
+      const sw = parseInt(data, 16);
+      const retry = s.length >= 13 ? parseInt(s.substring(11, 13), 16) : 0;
+      if (isNaN(sw)) return '';
+      return `Switch ${sw} Fatal Current Limit Fault, Count ${retry || 1}`;
+    }
+
+    // ── Short Circuit Fatal (no data) ──
+    case '21':
+      return 'Short Circuit Fatal';
+
+    // ── Register failures ──
+    case '5b': {
+      if (!data) return 'Read Register Unknown';
+      const rn = getRegName(data);
+      return rn ? `Read Register Unknown: ${rn} (ID: ${data.toUpperCase()})` : `Read Register Unknown (ID: ${data.toUpperCase()})`;
+    }
+    case '72': {
+      const regId = data;
+      const val = s.length >= 13 ? s.substring(11).toUpperCase() : '';
+      const rn = getRegName(regId);
+      const name = rn ? `: ${rn}` : '';
+      return val ? `Write Register Out of Range${name} (ID: ${regId.toUpperCase()}, Value: ${val})` : `Write Register Out of Range${name} (ID: ${regId.toUpperCase()})`;
+    }
+    case '69': {
+      return data ? `Register Index Unknown (Index: ${data.toUpperCase()})` : 'Register Index Unknown';
+    }
+    case '49': {
+      if (!data) return 'Register Index Missing';
+      const rn = getRegName(data);
+      return rn ? `Register Index Missing: ${rn} (ID: ${data.toUpperCase()})` : `Register Index Missing (ID: ${data.toUpperCase()})`;
+    }
+    case '28': {
+      if (!data) return 'Register Out of Bound';
+      const rn = getRegName(data);
+      return rn ? `Register Out of Bound: ${rn} (ID: ${data.toUpperCase()})` : `Register Out of Bound (ID: ${data.toUpperCase()})`;
+    }
+
+    // ── Frame failures ──
+    case '4c': {
+      return data ? `Invalid Frame Length (Frame: ${data.toUpperCase()})` : 'Invalid Frame Length';
+    }
+    case '24': {
+      return data ? `Frame ID Unknown (ID: ${data.toUpperCase()})` : 'Frame ID Unknown';
+    }
+    case '2d':
+      return 'Frame Attribute Unsupported';
+
+    // ── Flash / Memory ──
+    case '6e': {
+      if (!data) return 'Flash Write Error';
+      const rn = getRegName(data);
+      return rn ? `Flash Write Error: ${rn} (Register: ${data.toUpperCase()})` : `Flash Write Error (Register: ${data.toUpperCase()})`;
+    }
+
+    // ── Door failures ──
+    case '75': {
+      const door = parseInt(data, 16);
+      return isNaN(door) ? '' : `Door ${door} Unlock Failure`;
+    }
+    case '7d': {
+      const door = parseInt(data, 16);
+      return isNaN(door) ? '' : `Door ${door} Out of Range`;
+    }
+    case '7a': {
+      const door = parseInt(data, 16);
+      return isNaN(door) ? '' : `Door ${door} Busy Failure`;
+    }
+
+    // ── Compartment ──
+    case '5d': {
+      const pos = parseInt(data, 16);
+      return isNaN(pos) ? '' : `Compartment ${pos} Out of Range`;
+    }
+
+    default:
+      return '';
+  }
+}
+
+// Decoded message for one Alfie frame (the frame itself if the portal has no message for it)
+function describeAlfieFrame(line) {
+  const code = line.substring(5, 7).toLowerCase();
+  let msg = '';
+  if (code === '73') msg = decodeInfoReport(line);
+  else if (code === '77') msg = decodeWarnReport(line);
+  else if (code === '66') msg = decodeFailReport(line);
+  else if (code === '72') msg = decodeRegReport(line);
+  return msg || line;
+}
+
+// ── Steps 2…N: one step per Alfie found in Step 1 ──
+const SELF_DETECT_TIMEOUT_MS = 75000;   // longest wait for the self detect reply; the wait ends as soon as it arrives
+const PCB_MODULES = { 'FFFF': 'Default', '0300': 'Waterfall', '0100': 'Sensor Curtain' };   // register 0x16 values, as sent
+const SENSOR_CURTAIN = '0100';
+const RESET_TIMEOUT_MS = 10000;   // longest wait for the reset report after t{addr}F17c
+const RESET_SETTLE_MS = 3000;     // pause after the reset report before reading the Alfie again
+const RESET_CAUSES = { '40000000': 'Soft Reset', 'C0000000': 'Hard Reset' };
+const SENSOR_WAIT_MS = 20000;     // longest wait per door for Compartment Occupied + Unoccupied
+const SENSOR_SETTLE_MS = 1000;    // keep listening this long after both arrive, to catch any other frames
+const DOOR_POLL_MS = 5000;        // while doors are open: re-ask the door map this often if no Closed report arrives sooner
+// Failure report (66) sub-codes that mean a register read / write was refused
+const READ_FAIL_CODES  = ['5B', '69', '49', '28'];
+const WRITE_FAIL_CODES = ['72', '6E', '5B', '69', '49', '28'];
+
+let alfieStepAddrs = [];    // Alfie addresses (hex) in step order
+let alfieStepData = {};     // { addr: { detected, latches: [{ n, idx, latchMap, moduleBefore, moduleAfter }] } }
+let alfieSubResults = {};   // { addr: { subtaskIndex: true|false } }
+
+const hex2 = n => n.toString(16).toUpperCase().padStart(2, '0');
+
+// Frames sent by one Alfie
+const fromAlfie = addr => line =>
+  line.length >= 7 && line[0].toLowerCase() === 't' && line[3].toUpperCase() === 'F' &&
+  line.substring(1, 3).toUpperCase() === addr;
+
+// Read one per-latch register: t{addr}F352{reg}{idx} → t{addr}F572{reg}{idx}{2-byte value}
+// Returns { ok: true, valueHex } or { ok: false, error }
+async function readLatchReg(addr, reg, idx) {
+  const isFrom = fromAlfie(addr);
+  await sendCmd(`t${addr}F352${reg}${idx}`);
+  const replies = await collectResponses(line => isFrom(line) && (
+    (line.substring(5, 7) === '72' && line.substring(7, 9).toUpperCase() === reg && line.substring(9, 11).toUpperCase() === idx) ||
+    (line.substring(5, 7) === '66' && READ_FAIL_CODES.includes(line.substring(7, 9).toUpperCase()))
+  ), 2000, 1);
+  const line = replies[0];
+  if (!line) return { ok: false, error: 'No response' };
+  if (line.substring(5, 7) === '66') return { ok: false, error: `Failure ${line}` };
+  return { ok: true, valueHex: line.substring(11, 15).toUpperCase() };
+}
+
+// Register 0x12 (Latch Map): value is little-endian and zero-based → latch = value + 1, shown as "DEC (HEX)"
+function latchMapCell(r) {
+  if (!r.ok) return { text: r.error, ok: false };
+  const raw = parseInt(swapHex16(r.valueHex), 16);
+  if (isNaN(raw) || raw > 16) return { text: `Out of range (raw 0x${r.valueHex})`, ok: false };
+  return { text: `${raw + 1} (${hex2(raw + 1)})`, ok: true };
+}
+
+// Register 0x16 (PCB Module): FFFF Default, 0300 Waterfall, 0100 Sensor Curtain
+function pcbModuleCell(r) {
+  if (!r.ok) return { text: r.error, ok: false, raw: '' };
+  return { text: `${PCB_MODULES[r.valueHex] || 'Unknown'} (Value: ${r.valueHex})`, ok: true, raw: r.valueHex };
+}
+
+// The latch table shown after each sub-task (one row per latch; the last latch is the service compartment)
+function latchTableHTML(addr, title, summary, latches, withAfter) {
+  let html = `<div class="result-card">
+    <div class="result-card-title">${title}</div>
+    <div class="result-card-note">${summary}</div>
+    <table class="result-table">
+      <tr><th>Alfie Address</th><th>Compartment No.</th><th>Latch Map</th><th>PCB Module Before</th>${withAfter ? '<th>PCB Module After</th>' : ''}</tr>`;
+  latches.forEach((l, k) => {
+    html += `<tr>
+      ${k === 0 ? `<td rowspan="${latches.length}" class="alfie-addr-cell">${addr}</td>` : ''}
+      <td>${String(l.n).padStart(2, '0')}${l.service ? ' (Service)' : ''}</td>
+      <td class="${l.latchMap.ok ? '' : 'fail'}">${l.latchMap.text}</td>
+      <td class="${l.moduleBefore.ok ? '' : 'fail'}">${l.moduleBefore.text}</td>
+      ${withAfter ? `<td class="${l.moduleAfter.pass ? (l.service ? '' : 'pass') : 'fail'}">${l.moduleAfter.text}</td>` : ''}
+    </tr>`;
+  });
+  return html + '</table></div>';
+}
+
+// Door map: t{addr}F2512a → t{addr}F5732A{b1}{b2}{b3}
+// 3-byte bitmap, bit = 1 Closed, bit = 0 Open: b1 = latches 1–8, b2 = latches 9–16, b3 bit 0 = latch 17.
+// Returns the positions (2-digit hex) out of `positions` whose door is open.
+function openDoorsFromMap(line, positions) {
+  const b = [9, 11, 13].map(k => parseInt(line.substring(k, k + 2), 16));
+  return positions.filter(p => {
+    const n = parseInt(p, 16);
+    const byte = n <= 8 ? b[0] : n <= 16 ? b[1] : b[2];
+    const bit = n <= 8 ? n - 1 : n <= 16 ? n - 9 : 0;
+    return isNaN(byte) || !(byte & (1 << bit));
+  });
+}
+
+// Wait until the doors at `positions` (2-digit hex latch numbers) are closed. No time limit.
+//   1. Ask the door map (t{addr}F2512a) and list the open compartments.
+//   2. Ask the tester to close them and wait for Latch Closed (t{addr}F37363{pos}) from each one.
+//   3. Ask the door map again to confirm; move ahead only when none of `positions` is open.
+async function waitDoorsClosed(addr, positions, status) {
+  const isFrom = fromAlfie(addr);
+  while (true) {
+    await sendCmd(`t${addr}F2512a`, true);   // door status is kept out of the raw log; Latch Closed frames are logged
+    const replies = await collectResponses(
+      line => isFrom(line) && line.substring(5, 9).toUpperCase() === '732A', 2000, 1);
+    if (!replies.length) {
+      status.className = 'wf-status warn';
+      status.textContent = `No door map reply to t${addr}F2512a — asking again…`;
+      await delay(1500);
+      continue;
+    }
+    const open = openDoorsFromMap(replies[0], positions);
+    if (!open.length) return { map: replies[0] };
+
+    status.className = 'wf-status warn';
+    status.textContent = `Close compartment(s): ${open.map(p => parseInt(p, 16)).join(', ')}`;
+
+    // Wait for Latch Closed from every open compartment (or DOOR_POLL_MS, then the map is asked again)
+    const pending = new Set(open);
+    await new Promise(resolve => {
+      const timer = setTimeout(resolve, DOOR_POLL_MS);
+      rxCallback = line => {
+        if (!isFrom(line) || line.substring(5, 9).toUpperCase() !== '7363') return;
+        pending.delete(line.substring(9, 11).toUpperCase());
+        if (pending.size) {
+          status.textContent = `Close compartment(s): ${[...pending].map(p => parseInt(p, 16)).join(', ')}`;
+        } else {
+          clearTimeout(timer);
+          resolve();
+        }
+      };
+    });
+    rxCallback = null;
+  }
+}
+
+// Gate for the self detect and sensor check sub-tasks: the button stays locked until the door map shows no open door.
+// Before the first self detect the latch count is not known, so all 17 positions are checked;
+// after a self detect only the compartment latches are checked (the service door is not required).
+async function gateDoorsClosed(ctx) {
+  const known = alfieStepData[ctx.addr];
+  const positions = known
+    ? known.latches.filter(l => !l.service).map(l => l.idx)
+    : Array.from({ length: 17 }, (_, k) => hex2(k + 1));
+  ctx.status.className = 'wf-status info';
+  ctx.status.textContent = 'Checking that all doors are closed…';
+  const r = await waitDoorsClosed(ctx.addr, positions, ctx.status);
+  return `✓ All doors closed (${r.map}) — ready to run`;
+}
+
+// Sub-task: self detect, then read Latch Map and PCB Module for every detected latch (service latch included)
+async function subtaskSelfDetect(ctx) {
+  const { addr, addrDec, num, status } = ctx;
+  const isFrom = fromAlfie(addr);
+
+  addResult(`Sending: Self Detect → t${addr}F144`, 'cmd');
+  const t0 = Date.now();
+  const tick = setInterval(() => {
+    status.textContent = `Self detect running… ${Math.floor((Date.now() - t0) / 1000)}s`;
+  }, 500);
+  await sendCmd(`t${addr}F144`);
+  // Reply: t{addr}F37371{count} — number of latches detected
+  const replies = await collectResponses(
+    line => isFrom(line) && line.substring(5, 9) === '7371', SELF_DETECT_TIMEOUT_MS, 1);
+  clearInterval(tick);
+
+  if (!replies.length) {
+    addResult(`Alfie ${addrDec}: no self detect reply within ${SELF_DETECT_TIMEOUT_MS / 1000}s`, 'err');
+    return { ok: false, text: `✗ No self detect reply within ${SELF_DETECT_TIMEOUT_MS / 1000}s` };
+  }
+  const detected = parseInt(replies[0].substring(9, 11), 16);
+  const compartments = detected - 1;   // the last latch is the service compartment
+  addResult(`Alfie ${addrDec}: ${detected} latch(es) detected (${replies[0]})`, 'info');
+  if (isNaN(detected) || compartments < 1) {
+    return { ok: false, text: `✗ ${isNaN(detected) ? 'Unreadable' : detected} latch(es) detected — no compartment latches to read` };
+  }
+
+  addResult(`Reading Latch Map (t${addr}F35212{Latch No.}) and PCB Module (t${addr}F35216{Latch No.}) for latches 01–${hex2(detected)}…`, 'cmd');
+  const latches = [];
+  for (let n = 1; n <= detected; n++) {
+    const idx = hex2(n);
+    status.textContent = `Reading latch ${n} of ${detected}…`;
+    const latchMap = latchMapCell(await readLatchReg(addr, '12', idx));
+    const moduleBefore = pcbModuleCell(await readLatchReg(addr, '16', idx));
+    latches.push({ n, idx, latchMap, moduleBefore, service: n === detected });
+  }
+  alfieStepData[addr] = { detected, latches };
+
+  addResultHTML(latchTableHTML(addr,
+    `Alfie ${addrDec} (address ${addr}) — ${num} ${ctx.title}`,
+    `${detected} latches detected: ${compartments} compartment(s) + service (last row)`,
+    latches, false));
+
+  const bad = latches.filter(l => !l.latchMap.ok || !l.moduleBefore.ok).length;
+  return bad
+    ? { ok: false, text: `✗ ${detected} latches detected — ${bad} of ${detected} latch(es) could not be read` }
+    : { ok: true, text: `✓ ${detected} latches detected — ${compartments} compartment(s) + service latch read` };
+}
+
+// Sub-task: set Sensor Curtain PCB Module on every compartment latch, reset the Alfie, then read the
+// PCB Module back and show the "after" table.
+// The service latch (last one) is never written; its PCB Module is only read again to confirm it is unchanged.
+async function subtaskSetSensor(ctx) {
+  const { addr, addrDec, num, status } = ctx;
+  const isFrom = fromAlfie(addr);
+  const d = alfieStepData[addr];
+  if (!d || !d.latches.length) {
+    return { ok: false, text: '✗ No latch data — run the self detect sub-task first' };
+  }
+  const latches = d.latches;
+  const toSet = latches.filter(l => !l.service);
+  const lastIdx = latches[latches.length - 1].idx;
+
+  // 1. Write Sensor Curtain to every compartment latch
+  addResult(`Setting Sensor Curtain PCB Module (t${addr}F55716{Latch No.}${SENSOR_CURTAIN}) on latches 01–${toSet[toSet.length - 1].idx} (service latch ${lastIdx} is not written)…`, 'cmd');
+  const rejected = {};
+  for (const l of toSet) {
+    status.textContent = `Setting latch ${l.n} of ${toSet.length}…`;
+    await sendCmd(`t${addr}F55716${l.idx}${SENSOR_CURTAIN}`);
+    // A successful write has no reply; a failure report (66) means the write was rejected
+    const failures = await collectResponses(line => isFrom(line) && line.substring(5, 7) === '66' &&
+      WRITE_FAIL_CODES.includes(line.substring(7, 9).toUpperCase()), 300, 1);
+    if (failures[0]) rejected[l.idx] = failures[0];
+  }
+
+  // 2. Reset the Alfie and wait for its reset report: t{addr}F6737C{4-byte cause}
+  const resetCmd = `t${addr}F17c`;
+  status.textContent = 'Resetting Alfie…';
+  addResult(`Sending: Reset Alfie → ${resetCmd}`, 'cmd');
+  await sendCmd(resetCmd);
+  const resetReplies = await collectResponses(
+    line => isFrom(line) && line.substring(5, 9).toUpperCase() === '737C', RESET_TIMEOUT_MS, 1);
+  const resetLine = resetReplies[0] || '';
+  const cause = resetLine ? resetLine.substring(9, 17).toUpperCase() : '';
+  const softReset = cause === '40000000';
+  const resetText = resetLine
+    ? `${RESET_CAUSES[cause] || 'Reset Itself'} (Value: ${cause})`
+    : `no reset report within ${RESET_TIMEOUT_MS / 1000}s`;
+  addResult(`Alfie ${addrDec}: ${resetLine ? `reset report ${resetLine} — ${resetText}` : resetText}`, softReset ? 'info' : 'err');
+  if (resetLine) {
+    status.textContent = 'Waiting for the Alfie to restart…';
+    await delay(RESET_SETTLE_MS);
+  }
+
+  // 3. Read the PCB Module back for every latch, service latch included
+  addResult(`Reading PCB Module back (t${addr}F35216{Latch No.}) for latches 01–${lastIdx}…`, 'cmd');
+  for (const l of latches) {
+    status.textContent = `Reading latch ${l.n} of ${latches.length}…`;
+    const after = pcbModuleCell(await readLatchReg(addr, '16', l.idx));
+    // Compartment latches must now be Sensor Curtain; the service latch must be what it was before
+    after.pass = l.service
+      ? (after.ok && after.raw === l.moduleBefore.raw)
+      : (after.ok && after.raw === SENSOR_CURTAIN);
+    if (rejected[l.idx]) after.text += ` — write rejected: ${rejected[l.idx]}`;
+    if (l.service && after.ok) after.text += after.pass ? ' — not changed' : ' — CHANGED';
+    l.moduleAfter = after;
+  }
+
+  addResultHTML(latchTableHTML(addr,
+    `Alfie ${addrDec} (address ${addr}) — ${num} ${ctx.title}`,
+    `Alfie reset: ${resetText}. Service latch (last row) not written.`,
+    latches, true));
+
+  const bad = toSet.filter(l => !l.moduleAfter.pass).length;
+  const service = latches.find(l => l.service);
+  if (bad) return { ok: false, text: `✗ ${bad} of ${toSet.length} compartment latch(es) are not Sensor Curtain after the reset` };
+  if (!resetLine) return { ok: false, text: `✗ No reset report within ${RESET_TIMEOUT_MS / 1000}s` };
+  if (!softReset) return { ok: false, text: `✗ Alfie reset, but the cause is ${resetText}, not Soft Reset` };
+  if (service && !service.moduleAfter.pass) return { ok: false, text: '✗ Compartment latches set, but the service latch PCB Module could not be confirmed unchanged' };
+  return { ok: true, text: `✓ All ${toSet.length} compartment latch(es) are Sensor Curtain after the reset; service latch not changed` };
+}
+
+// Sub-task: open every compartment door in turn (not the service door) and check its sensor.
+// While a door is being checked:
+//   t{addr}F37328{pos} Compartment Occupied and t{addr}F37329{pos} Compartment Unoccupied  → sensor working
+//   t{addr}F3736F{pos} Latch Opened for this door, the first time                              → normal
+//   any further Latch Opened, and any Latch Closed (t{addr}F37363{pos}), for this door          → unexpected
+//   the same four frame types from OTHER compartments are ignored and kept out of the raw log
+// Anything else received from this Alfie in that time is listed under "Unexpected responses".
+const DOOR_SENSOR_CODES = ['7328', '7329', '736F', '7363'];
+async function subtaskCheckSensors(ctx) {
+  const { addr, addrDec, num, status } = ctx;
+  const isFrom = fromAlfie(addr);
+  const d = alfieStepData[addr];
+  if (!d || !d.latches.length) {
+    return { ok: false, text: '✗ No latch data — run the self detect sub-task first' };
+  }
+  const doors = d.latches.filter(l => !l.service);
+
+  addResult(`Opening doors 01–${doors[doors.length - 1].idx} one by one (t${addr}F24f{Latch No.}) and checking each compartment sensor…`, 'cmd');
+  for (const l of doors) {
+    const pos = l.idx;
+    let occupied = false, unoccupied = false, opened = false, wake = null;
+    const unexpected = [];
+    const otherCompartment = line => isFrom(line) &&
+      DOOR_SENSOR_CODES.includes(line.substring(5, 9).toUpperCase()) &&
+      line.substring(9, 11).toUpperCase() !== pos;
+    rxLogFilter = otherCompartment;
+    rxCallback = line => {
+      if (!isFrom(line) || otherCompartment(line)) return;
+      const code = line.substring(5, 9).toUpperCase();
+      if (code === '7328') occupied = true;
+      else if (code === '7329') unoccupied = true;
+      else if (code === '736F' && !opened) opened = true;   // the one Latch Opened expected after the open command
+      else unexpected.push(describeAlfieFrame(line));
+      if (wake) wake();
+    };
+
+    await sendCmd(`t${addr}F24f${pos}`);
+    const t0 = Date.now();
+    while (!(occupied && unoccupied) && Date.now() - t0 < SENSOR_WAIT_MS) {
+      const left = Math.ceil((SENSOR_WAIT_MS - (Date.now() - t0)) / 1000);
+      status.textContent = `Door ${l.n} of ${doors.length} open — Occupied ${occupied ? '✓' : '…'}  Unoccupied ${unoccupied ? '✓' : '…'}  (${left}s left)`;
+      await new Promise(r => { wake = r; setTimeout(r, 250); });
+    }
+    status.textContent = `Door ${l.n} of ${doors.length} — ${occupied && unoccupied ? 'sensor OK' : 'sensor did not report both states'}`;
+    await delay(SENSOR_SETTLE_MS);
+    rxCallback = null;
+    rxLogFilter = null;
+    l.sensor = { occupied, unoccupied, unexpected };
+  }
+
+  let html = `<div class="result-card">
+    <div class="result-card-title">Alfie ${addrDec} (address ${addr}) — ${num} ${ctx.title}</div>
+    <div class="result-card-note">${doors.length} door(s) opened; service door not opened.</div>
+    <table class="result-table">
+      <tr><th>Alfie No.</th><th>Compartment No.</th><th>Sensor Working</th><th>Unexpected responses</th></tr>`;
+  doors.forEach((l, k) => {
+    const sn = l.sensor;
+    const working = sn.occupied && sn.unoccupied;
+    // Same message received more than once is shown once with a count
+    const counts = {};
+    sn.unexpected.forEach(m => { counts[m] = (counts[m] || 0) + 1; });
+    const unexpectedHTML = Object.keys(counts).map(m => counts[m] > 1 ? `${m} (×${counts[m]})` : m).join('<br>');
+    html += `<tr>
+      ${k === 0 ? `<td rowspan="${doors.length}" class="alfie-addr-cell">${addr}</td>` : ''}
+      <td>${String(l.n).padStart(2, '0')}</td>
+      <td class="${working ? 'pass' : 'fail'}">Occupied ${sn.occupied ? '✓' : '✗'} · Unoccupied ${sn.unoccupied ? '✓' : '✗'}</td>
+      <td class="${unexpectedHTML ? 'fail' : ''}">${unexpectedHTML || '—'}</td>
+    </tr>`;
+  });
+  addResultHTML(html + '</table></div>');
+
+  const notWorking = doors.filter(l => !(l.sensor.occupied && l.sensor.unoccupied)).length;
+  const flagged = doors.filter(l => l.sensor.unexpected.length).length;
+  if (notWorking || flagged) {
+    const parts = [];
+    if (notWorking) parts.push(`${notWorking} of ${doors.length} sensor(s) not working`);
+    if (flagged) parts.push(`${flagged} door(s) with unexpected responses`);
+    return { ok: false, text: '✗ ' + parts.join('; ') };
+  }
+  return { ok: true, text: `✓ All ${doors.length} compartment sensor(s) reported Occupied and Unoccupied` };
+}
+
+// Sub-tasks every Alfie step runs, in order
+const ALFIE_SUBTASKS = [
+  { title: 'Self Detect & Read Latches',
+    note: 'Close all doors. Unlocks when no door is open.',
+    button: 'Run Self Detect',
+    gate: gateDoorsClosed,
+    run: subtaskSelfDetect },
+  { title: 'Set Sensor PCB Module',
+    note: 'Sets compartment latches to Sensor Curtain, resets the Alfie and reads back. Service latch is not changed.',
+    button: 'Set Sensor PCB Module',
+    run: subtaskSetSensor },
+  { title: 'Open Doors & Check Sensors',
+    note: 'Close all doors to unlock. Opens each compartment door and checks its sensor (up to 20 s per door).',
+    button: 'Open Doors & Check Sensors',
+    gate: gateDoorsClosed,
+    run: subtaskCheckSensors },
+];
+
+function buildAlfieSteps(addresses) {
+  alfieStepAddrs = addresses.slice();
+  alfieStepData = {};
+  alfieSubResults = {};
+  subtaskUnlock = {};
+  document.getElementById('alfieSteps').innerHTML = alfieStepAddrs.map((addr, i) => {
+    const stepNo = i + 2;
+    const subtasks = ALFIE_SUBTASKS.map((st, j) => `
+        <div class="subtask" id="subtask-${addr}-${j}">
+          <div class="subtask-head">
+            <span class="subtask-num">${stepNo}.${j + 1}</span>
+            <span class="subtask-title">${st.title}</span>
+          </div>
+          <div class="subtask-note">${st.note}</div>
+          <button class="wf-btn subtask-btn" id="btnSub-${addr}-${j}" onclick="runAlfieSubtask(${i}, ${j})" disabled>${st.button}</button>
+          <div class="wf-status" id="subStatus-${addr}-${j}"></div>
+        </div>`).join('');
+    return `
+      <div class="wf-step hidden" id="step-alfie-${addr}">
+        <div class="wf-step-title">Step ${stepNo} — Alfie ${parseInt(addr, 16)}</div>
+        <div class="wf-step-desc">Address ${addr}. Run the sub-tasks in order.</div>
+        <div class="subtask-list">${subtasks}</div>
+        <div class="wf-status" id="alfieStatus-${addr}"></div>
+      </div>`;
+  }).join('');
+  showAlfieStep(0);
+}
+
+// Reveal Alfie step i, or the final download step once every Alfie step is done
+function showAlfieStep(i) {
+  const id = i < alfieStepAddrs.length ? `step-alfie-${alfieStepAddrs[i]}` : 'step-download';
+  const el = document.getElementById(id);
+  el.classList.remove('hidden');
+  el.scrollIntoView({ block: 'nearest' });
+  if (i < alfieStepAddrs.length) unlockSubtask(i, 0);
+}
+
+// Unlock the button of sub-task j of Alfie step i. A sub-task with a gate (e.g. "all doors closed")
+// keeps its button locked until the gate has passed.
+let subtaskUnlock = {};   // "addr-j" → 'gating' | 'open'
+async function unlockSubtask(i, j) {
+  const addr = alfieStepAddrs[i];
+  const key = `${addr}-${j}`;
+  const st = ALFIE_SUBTASKS[j];
+  const btn = document.getElementById(`btnSub-${addr}-${j}`);
+  const status = document.getElementById(`subStatus-${addr}-${j}`);
+  if (subtaskUnlock[key] === 'gating') return;
+  if (subtaskUnlock[key] === 'open') { btn.disabled = false; return; }
+  if (st.gate) {
+    subtaskUnlock[key] = 'gating';
+    try {
+      const text = await st.gate({ addr, addrDec: parseInt(addr, 16), status });
+      status.className = 'wf-status ok';
+      status.textContent = text;
+    } catch (e) {
+      status.className = 'wf-status err';
+      status.textContent = '✗ ' + e.message;
+    }
+  }
+  subtaskUnlock[key] = 'open';
+  btn.disabled = false;
+}
+
+// Run sub-task j of Alfie step i, then unlock the next sub-task (or the next step after the last one)
+async function runAlfieSubtask(i, j) {
+  const addr = alfieStepAddrs[i];
+  const st = ALFIE_SUBTASKS[j];
+  const btn = document.getElementById(`btnSub-${addr}-${j}`);
+  const status = document.getElementById(`subStatus-${addr}-${j}`);
+  const row = document.getElementById(`subtask-${addr}-${j}`);
+  btn.disabled = true;
+  status.className = 'wf-status info';
+  status.textContent = 'Running…';
+
+  let res;
+  try {
+    res = await st.run({ addr, addrDec: parseInt(addr, 16), num: `${i + 2}.${j + 1}`, title: st.title, status });
+  } catch (e) {
+    res = { ok: false, text: '✗ ' + e.message };
+  }
+
+  status.className = 'wf-status ' + (res.ok ? 'ok' : 'err');
+  status.textContent = res.text;
+  row.classList.remove('done', 'failed');
+  row.classList.add(res.ok ? 'done' : 'failed');
+  if (!alfieSubResults[addr]) alfieSubResults[addr] = {};
+  alfieSubResults[addr][j] = res.ok;
+
+  // A failed sub-task can be run again; the workflow still moves on
+  if (!res.ok) { btn.disabled = false; btn.textContent = '↻ Retry'; }
+
+  if (j + 1 < ALFIE_SUBTASKS.length) {
+    unlockSubtask(i, j + 1);
+  } else {
+    finishAlfieStep(i);
+  }
+}
+
+// The last sub-task of Alfie step i has run: summarise the step and reveal the next one
+function finishAlfieStep(i) {
+  const addr = alfieStepAddrs[i];
+  const addrDec = parseInt(addr, 16);
+  const status = document.getElementById(`alfieStatus-${addr}`);
+  const results = alfieSubResults[addr] || {};
+  const failed = ALFIE_SUBTASKS.filter((_, j) => results[j] !== true).length;
+  if (failed) {
+    status.className = 'wf-status err';
+    status.textContent = `✗ Alfie ${addrDec}: ${failed} of ${ALFIE_SUBTASKS.length} sub-task(s) failed`;
+  } else {
+    status.className = 'wf-status ok';
+    status.textContent = `✓ Alfie ${addrDec}: all ${ALFIE_SUBTASKS.length} sub-tasks done`;
+  }
+  showAlfieStep(i + 1);
+}
+
+// ── Theme toggle ──
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  const newTheme = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+  const btn = document.getElementById('themeBtn');
+  btn.innerHTML = newTheme === 'dark'
+    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>'
+    : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+  try { localStorage.setItem('pw-theme', newTheme); } catch(_) {}
+}
+
+function applyStoredTheme() {
+  let theme = 'light';
+  try { theme = localStorage.getItem('pw-theme') || 'light'; } catch(_) {}
+  if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  toggleTheme(); toggleTheme(); // sync button icon
+}
+
+// ── Tester name (browsers cannot read the OS username — this is the stand-in) ──
+function saveTesterName() {
+  const val = document.getElementById('testerNameInput').value;
+  try { localStorage.setItem('pw-tester-name', val); } catch(_) {}
+}
+
+function loadStoredTesterName() {
+  let name = '';
+  try { name = localStorage.getItem('pw-tester-name') || ''; } catch(_) {}
+  document.getElementById('testerNameInput').value = name;
+}
+
+function getTesterName() {
+  const el = document.getElementById('testerNameInput');
+  const v = el ? el.value.trim() : '';
+  return v || 'Unknown';
+}
+
+// ── Sales Order Details (never persisted — required fresh each session) ──
+const SO_PATTERN = /^S\d{5}$/;
+
+function saveSoDetails() {
+  // Intentionally not saved to localStorage: the tester must enter it every run.
+  validateWorkflowStart();
+}
+
+function isSoValid() {
+  const el = document.getElementById('soDetailsInput');
+  return el ? SO_PATTERN.test(el.value.trim()) : false;
+}
+
+function getSoDetails() {
+  const el = document.getElementById('soDetailsInput');
+  const v = el ? el.value.trim() : '';
+  return v || 'Unknown';
+}
+
+// Gate: workflow cannot begin without a valid Sales Order Details value (S + 5 digits)
+function validateWorkflowStart() {
+  const el = document.getElementById('soDetailsInput');
+  const raw = el ? el.value.trim() : '';
+  const valid = SO_PATTERN.test(raw);
+  const countBtn = document.getElementById('btnCount');
+  const hint = document.getElementById('soRequiredHint');
+  if (countBtn) countBtn.disabled = !valid || !port || countStarted;
+  if (hint) {
+    if (raw.length === 0) {
+      hint.style.display = 'block';
+      hint.textContent = 'Required — format: S followed by 5 digits, e.g. S36135.';
+    } else if (!valid) {
+      hint.style.display = 'block';
+      hint.textContent = 'Invalid format — must start with capital S and have exactly 5 digits after it, e.g. S36135.';
+    } else {
+      hint.style.display = 'none';
+    }
+  }
+}
+
+// Strip characters that are unsafe in filenames
+function safeFilePart(s) {
+  return String(s).trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_') || 'Unknown';
+}
+
+function fileTimestamp() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+}
+
+// ── Download log ──
+// ── Dynamic library loaders ──
+function loadScript(urls) {
+  return new Promise((resolve, reject) => {
+    let idx = 0;
+    function tryNext() {
+      if (idx >= urls.length) { reject(new Error('Could not load library')); return; }
+      const s = document.createElement('script');
+      s.src = urls[idx++];
+      s.onload = resolve;
+      s.onerror = tryNext;
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+}
+
+function loadJsPDF() {
+  if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+  return loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js',
+    'https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js'
+  ]).then(() => window.jspdf.jsPDF);
+}
+
+function loadHtml2Canvas() {
+  if (window.html2canvas) return Promise.resolve(window.html2canvas);
+  return loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+    'https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js'
+  ]).then(() => window.html2canvas);
+}
+
+function fmtLogTs(d) {
+  const pad = (n, l) => String(n).padStart(l || 2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(),3)}`;
+}
+
+// ── Download Logs (raw TX/RX with timestamp, PDF) ──
+async function downloadBoth() {
+  await downloadLog();
+  await delay(400); // let the first save dialog/write settle before the next
+  await downloadReport();
+}
+
+// Toolbar button — available any time, doesn't touch the final-step UI
+async function downloadAllTop() {
+  const btn = document.getElementById('btnDownloadAllTop');
+  btn.disabled = true;
+  btn.textContent = '↓ Downloading…';
+  addResult('Downloading command log and report…', 'info');
+
+  await downloadBoth();
+
+  btn.textContent = '↓ Download Log & Report';
+  btn.disabled = false;
+}
+
+// Final workflow step — same action, with its own status line
+async function downloadAllStep() {
+  const btn = document.getElementById('btnDownloadAll');
+  const status = document.getElementById('downloadStepStatus');
+  btn.disabled = true;
+
+  status.className = 'wf-status info';
+  status.textContent = 'Downloading command log…';
+  await downloadLog();
+  await delay(400);
+
+  status.textContent = 'Downloading report…';
+  await downloadReport();
+
+  btn.textContent = '✓ Records Downloaded';
+  status.className = 'wf-status ok';
+  status.textContent = '✓ Workflow complete. Log and report both downloaded.';
+}
+
+async function downloadLog() {
+  if (rawLog.length === 0) { addResult('No commands sent/received yet.', 'info'); return; }
+
+  let jsPDF;
+  try {
+    addResult('Loading PDF library…', 'info');
+    jsPDF = await loadJsPDF();
+  } catch (e) {
+    addResult('PDF library unavailable. Exporting as text.', 'err');
+    downloadLogText();
+    return;
+  }
+
+  try {
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const marginL = 10, marginT = 22, marginB = 10;
+    const lineH = 5;
+    let y = marginT;
+
+    const testerName = getTesterName();
+    const soDetails = getSoDetails();
+    const exportDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
+      '  ' + new Date().toLocaleTimeString('en-GB', { hour12: false });
+
+    function drawLogHeader() {
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, pageW, 16, 'F');
+      doc.setDrawColor(200, 197, 188);
+      doc.line(0, 16, pageW, 16);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(28, 27, 24);
+      doc.text(`${soDetails} — Command Log`, marginL, 8);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(80, 78, 74);
+      doc.text(`Tested by: ${testerName}`, marginL, 13);
+      doc.setTextColor(112, 110, 104);
+      doc.text(exportDate, pageW - marginL, 13, { align: 'right' });
+    }
+
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(8.5);
+    drawLogHeader();
+
+    function ensureSpace() {
+      if (y + lineH > pageH - marginB) {
+        doc.addPage();
+        drawLogHeader();
+        doc.setFont('courier', 'normal');
+        doc.setFontSize(8.5);
+        y = marginT;
+      }
+    }
+
+    rawLog.forEach(entry => {
+      ensureSpace();
+      const dateStr = entry.ts.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const timeStr = fmtLogTs(entry.ts);
+      const dirArrow = entry.dir === 'TX' ? '>>' : '<<';
+      const color = entry.dir === 'TX' ? [26, 95, 168] : [123, 63, 168];
+      doc.setTextColor(...color);
+      const line = `(${timeStr}) (${portLabel}) (${dirArrow}) ${entry.text}`;
+      doc.text(line, marginL, y);
+      y += lineH;
+    });
+
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Page ${i} of ${totalPages}`, pageW - marginL, pageH - 5, { align: 'right' });
+      doc.text(`${soDetails} — Command Log`, marginL, pageH - 5);
+    }
+
+    const logFileName = `${safeFilePart(soDetails)}-${safeFilePart(testerName)}-${fileTimestamp()}-logs.pdf`;
+    doc.save(logFileName);
+    addResult(`Command log exported as PDF (${rawLog.length} entries).`, 'ok');
+  } catch (e) {
+    addResult('PDF export failed: ' + e.message + '. Exporting as text.', 'err');
+    downloadLogText();
+  }
+}
+
+function downloadLogText() {
+  const text = rawLog.map(entry => {
+    const timeStr = fmtLogTs(entry.ts);
+    const dirArrow = entry.dir === 'TX' ? '>>' : '<<';
+    return `(${timeStr}) (${portLabel}) (${dirArrow}) ${entry.text}`;
+  }).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  a.download = `${safeFilePart(getSoDetails())}-${safeFilePart(getTesterName())}-${fileTimestamp()}-logs.txt`;
+  a.click();
+}
+
+// ── Download Report (results panel with CSS, as image-based PDF) ──
+async function downloadReport() {
+  const wrap = document.getElementById('resultsWrap');
+  if (!wrap.innerHTML.trim()) { addResult('No results to export.', 'info'); return; }
+
+  let html2canvas, jsPDF;
+  try {
+    addResult('Loading report export libraries…', 'info');
+    [html2canvas, jsPDF] = await Promise.all([loadHtml2Canvas(), loadJsPDF()]);
+  } catch (e) {
+    addResult('Report export libraries unavailable.', 'err');
+    return;
+  }
+
+  const prevStyle = {
+    overflow: wrap.style.overflow,
+    maxHeight: wrap.style.maxHeight,
+    height: wrap.style.height,
+  };
+
+  try {
+    const bg = getComputedStyle(document.body).getPropertyValue('--bg') || '#EDEAE3';
+
+    // resultsWrap scrolls internally, so html2canvas only sees the visible
+    // viewport by default. Temporarily expand it to its full scroll height.
+    wrap.style.overflow = 'visible';
+    wrap.style.maxHeight = 'none';
+    wrap.style.height = 'auto';
+    void wrap.offsetHeight; // force reflow so scrollHeight is accurate
+
+    const fullHeight = wrap.scrollHeight;
+
+    const canvas = await html2canvas(wrap, {
+      backgroundColor: bg.trim() || '#EDEAE3',
+      scale: 2,
+      useCORS: true,
+      height: fullHeight,
+      windowHeight: fullHeight,
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pxToMm = px => px * 0.264583;
+    const imgWmm = pxToMm(canvas.width / 2);
+    const imgHmm = pxToMm(canvas.height / 2);
+
+    const pageWmm = 210; // A4 portrait width
+    const marginMm = 8;
+    const headerHmm = 15;   // title at 7 mm, tester/date line at 11 mm, rule at 13 mm (below the text)
+    const usableWmm = pageWmm - marginMm * 2;
+    const scaleFactor = usableWmm / imgWmm;
+    const scaledHmm = imgHmm * scaleFactor;
+    const pageHmm = 297;
+    const usableHmm = pageHmm - marginMm * 2 - headerHmm;
+
+    const testerName = getTesterName();
+    const soDetails = getSoDetails();
+    const exportDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
+      '  ' + new Date().toLocaleTimeString('en-GB', { hour12: false });
+
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    function drawReportHeader() {
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, pageWmm, headerHmm, 'F');
+      doc.setDrawColor(200, 197, 188);
+      doc.setLineWidth(0.2);
+      doc.line(marginMm, headerHmm - 2, pageWmm - marginMm, headerHmm - 2);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(28, 27, 24);
+      doc.text(`${soDetails} — Report`, marginMm, 7);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(80, 78, 74);
+      doc.text(`Tested by: ${testerName}`, marginMm, 11);
+      doc.setTextColor(112, 110, 104);
+      doc.text(exportDate, pageWmm - marginMm, 11, { align: 'right' });
+    }
+
+    if (scaledHmm <= usableHmm) {
+      drawReportHeader();
+      doc.addImage(imgData, 'PNG', marginMm, marginMm + headerHmm, usableWmm, scaledHmm);
+    } else {
+      // Slice image across multiple pages
+      const pxPerPageMm = usableHmm / scaleFactor; // in original px-mm space
+      const totalHmmOriginal = imgHmm;
+      let renderedMm = 0;
+      let first = true;
+      while (renderedMm < totalHmmOriginal) {
+        if (!first) doc.addPage();
+        first = false;
+        drawReportHeader();
+        const sliceHmm = Math.min(pxPerPageMm, totalHmmOriginal - renderedMm);
+        const sourceYpx = (renderedMm / totalHmmOriginal) * canvas.height;
+        const sourceHpx = (sliceHmm / totalHmmOriginal) * canvas.height;
+
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sourceHpx;
+        const ctx = sliceCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, sourceYpx, canvas.width, sourceHpx, 0, 0, canvas.width, sourceHpx);
+        const sliceData = sliceCanvas.toDataURL('image/png');
+        doc.addImage(sliceData, 'PNG', marginMm, marginMm + headerHmm, usableWmm, sliceHmm * scaleFactor);
+        renderedMm += sliceHmm;
+      }
+    }
+
+    const reportFileName = `${safeFilePart(soDetails)}-${safeFilePart(testerName)}-${fileTimestamp()}-report.pdf`;
+    doc.save(reportFileName);
+    addResult('Report exported as PDF.', 'ok');
+  } catch (e) {
+    addResult('Report export failed: ' + e.message, 'err');
+  } finally {
+    // Restore original scrollable styling regardless of success/failure
+    wrap.style.overflow = prevStyle.overflow;
+    wrap.style.maxHeight = prevStyle.maxHeight;
+    wrap.style.height = prevStyle.height;
+  }
+}
+
+// ── Init ──
+window.addEventListener('DOMContentLoaded', () => {
+  const badge = document.getElementById('apiBadge');
+  if (!HAS_API) {
+    badge.textContent = 'API unavailable';
+    badge.style.borderColor = '#D4980A'; badge.style.color = 'var(--amber)';
+    document.getElementById('apiWarn').style.display = 'block';
+  } else {
+    badge.textContent = 'API ready';
+    badge.style.borderColor = 'var(--green)'; badge.style.color = 'var(--green)';
+  }
+  applyStoredTheme();
+  loadStoredTesterName();
+  addResult('Ready — connect a COM port to begin.', 'info');
+});
+</script>
+</body>
+</html>
